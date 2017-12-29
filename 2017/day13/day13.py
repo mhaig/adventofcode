@@ -23,6 +23,7 @@ class FirewallLevel(object):
         self._increment = True
 
         self._length = range
+        self._max_index = (self._length - 1)
         self._packet = False
         self._detected = False
 
@@ -68,10 +69,12 @@ class FirewallLevel(object):
                               [4]
                               [5]
         """
-        position = picosecond % ((self._length - 1) * 2)
-        if position > (self._length - 1):
-            offset = position - (self._length - 1)
-            position = (self._length - 1) - offset
+        position = picosecond % (self._max_index * 2)
+        if position > self._max_index:
+            offset = position - self._max_index
+            position = self._max_index - offset
+
+        return position
 
     def click(self, picosecond):
         position = self._position
@@ -136,43 +139,24 @@ def main():
     # Need to make this smarter.  There needs to be a way to calculate this or
     # at least weed out some delays based on when the first depth would hit,
     # etc.
-    detected_flag = True
-    delay = 0
-    while detected_flag:
-        if delay % 100 == 0:
-            print('Delay %d' % delay)
-        init_firewall(firewall)
+    init_firewall(firewall)
+    # print(firewall)
+
+    for i in range(firewall_level_count):
+        # Set packet position.
+        clear_packet(firewall)
+        if firewall[i]:
+            firewall[i].packet = True
+
+        # print('Picosecond %d' % i)
+        move_firewall(firewall, i)
         # print(firewall)
-
-        for i in range(firewall_level_count + delay):
-            # Set packet position.
-            clear_packet(firewall)
-            if i >= delay and firewall[i - delay]:
-                firewall[i - delay].packet = True
-
-            # print('Picosecond %d' % i)
-            move_firewall(firewall, i)
-            # print(firewall)
-            # detected_flag = reduce(lambda x, y: x or y, [x.detected for x in firewall if x])
-            detected_flag = True in [x.detected for x in firewall if x]
-            if detected_flag:
-                break
-
-        # Detected anything?
-        # print([x.detected for x in firewall if x])
-        # detected_flag = reduce(lambda x, y: x or y, [x.detected for x in firewall if x])
-        detected_flag = True in [x.detected for x in firewall if x]
-        # print(detected_flag)
-        if detected_flag:
-            delay += 1
-
 
     detected_math = ['%d * %d' % (x.depth, x.range) if x and x.detected else 0 for x in firewall]
     print(detected_math)
     detected = reduce(lambda x, y: x + y, [x.depth * x.range if x and x.detected else 0 for x in firewall])
     # detected = reduce(lambda x: (x.depth * x.range) if x and x.detected else 0, firewall)
     print(detected)
-    print(delay)
 
 
 if __name__ == '__main__':
