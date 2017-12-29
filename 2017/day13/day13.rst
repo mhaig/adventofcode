@@ -1,0 +1,1 @@
+Answer for input.txt: 1476

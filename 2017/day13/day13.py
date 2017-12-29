@@ -78,26 +78,11 @@ class FirewallLevel(object):
 
     def click(self, picosecond):
         position = self._position
+        new_position = self.calculate_position(picosecond)
 
         # Before moving, see if a packet was detected.
-        if self._packet and position == 0:
+        if self._packet and new_position == 0:
             self._detected = True
-
-        # if picosecond == 0:
-        #     return
-
-        if self._increment:
-            if position + 1 >= self._length:
-                self._increment = False
-            else:
-                new_position = position + 1
-
-        if not self._increment:
-            if position - 1 < 0:
-                self._increment = True
-                new_position = position + 1
-            else:
-                new_position = position - 1
 
         self._list[position] = 0
         self._list[new_position] = 'S'
@@ -135,12 +120,8 @@ def main():
         firewall[depth] = FirewallLevel(depth, int(line.split(': ')[1]))
 
     print(firewall)
-
-    # Need to make this smarter.  There needs to be a way to calculate this or
-    # at least weed out some delays based on when the first depth would hit,
-    # etc.
     init_firewall(firewall)
-    # print(firewall)
+    print(firewall)
 
     for i in range(firewall_level_count):
         # Set packet position.
@@ -148,15 +129,60 @@ def main():
         if firewall[i]:
             firewall[i].packet = True
 
-        # print('Picosecond %d' % i)
+        print('Picosecond %d' % i)
         move_firewall(firewall, i)
-        # print(firewall)
+        print(firewall)
 
     detected_math = ['%d * %d' % (x.depth, x.range) if x and x.detected else 0 for x in firewall]
     print(detected_math)
     detected = reduce(lambda x, y: x + y, [x.depth * x.range if x and x.detected else 0 for x in firewall])
     # detected = reduce(lambda x: (x.depth * x.range) if x and x.detected else 0, firewall)
     print(detected)
+
+    # Find the delay that will allow the packet to progress.  Instead of
+    # running the whole "click" stuff, use the new method on each layer to see
+    # if the detector will be in position 0 at a particular picosecond.
+    delay = 0
+    picosecond = 0
+    while True:
+        if delay % 1000 == 0:
+            print(delay)
+        detected = False
+        # print('Testing delay %d' % delay)
+        for i in range(len(firewall)):
+            # print('Picosecond %d' % (i + delay))
+            if firewall[i]:
+                position = firewall[i].calculate_position(i + delay)
+                if position == 0:
+                    # Detected, break!
+                    # print('Detected, break!')
+                    detected = True
+                    break
+        
+        if detected:
+            delay += 1
+        else:
+            print('Final delay %d' % delay)
+            break
+            
+        # for level in firewall:
+        #     if level:
+        #         picosecond = picosecond + delay
+        #         print('Picosecond %d' % picosecond)
+        #         position = level.calculate_position(picosecond)
+        #         print(position)
+        #         if position == 0:
+        #             # Detected, break
+        #             print('Detected, break!')
+        #             detected = True
+        #             break
+        #     picosecond += 1
+        # if not detected:
+        #     # Made i through undetected!
+        #     print('Proper delay %d' % delay)
+        #     break
+        # delay += 1
+
 
 
 if __name__ == '__main__':
