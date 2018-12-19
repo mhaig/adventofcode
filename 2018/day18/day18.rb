@@ -1,9 +1,33 @@
 #!/usr/bin/env ruby
 
+# This is not efficient at all but solves the puzzle.  Need to refactor to a
+# more efficient solution at some point...
+
 OPEN_AREA = "."
 TREES = "|"
 LUMBERYARD = "#"
 
+# class Acre
+
+#   attr_accessor :upper_left, :upper, :upper_right, :left, :right, :lower_left,
+#     :lower, :lower_right, :type
+
+#   def initialize
+#     @type = OPEN_AREA
+#   end
+
+#   def update_state
+
+#     if @type == OPEN_AREA
+#       if
+#     end
+
+#   end
+
+# end
+
+# TODO Will probably reuse this function for day 17.  Move into another file to
+# use instead of copy/paste!
 def print_area(area)
 
   min_x = area.keys.map { |a| a[0] }.sort.first
@@ -50,12 +74,25 @@ print_area(lumber_area)
 
 def solve_puzzle(lumber_area, mins)
 
+  solves = Hash.new(0)
+
   min_x = lumber_area.keys.map { |a| a[0] }.sort.first
   max_x = lumber_area.keys.map { |a| a[0] }.sort.last
   min_y = lumber_area.keys.map { |a| a[1] }.sort.first
   max_y = lumber_area.keys.map { |a| a[1] }.sort.last
 
-  (1..mins).each do |minute|
+  solves[lumber_area] = 0
+  start_of_overlap = 0
+  length_of_overlap = 0
+  sequencer = Enumerator.new do |yielder|
+    number = 0
+    loop do
+      number += 1
+      yielder.yield number
+    end
+  end
+
+  sequencer.each do |minute|
 
     new_lumber_area = {}
 
@@ -93,12 +130,29 @@ def solve_puzzle(lumber_area, mins)
       end
     end
 
+    if solves.key?(new_lumber_area)
+      p "Hitting duplictes, #{minute} matches #{solves[new_lumber_area]}"
+      start_of_overlap = solves[new_lumber_area]
+      length_of_overlap = minute - start_of_overlap
+      break
+    else
+      solves[new_lumber_area] = minute
+    end
+
     lumber_area = new_lumber_area
 
   end
 
-  p lumber_area.values.count(LUMBERYARD) * lumber_area.values.count(TREES)
+  mins.each do |m|
+    number_i_want = m
+    if m > start_of_overlap
+      number_i_want = ((m - start_of_overlap) % (length_of_overlap)) + start_of_overlap
+    end
+    answer = solves.select { |k,v| v == number_i_want}
+
+    puts "Resources after #{m} minutes: " \
+      "#{answer.keys[0].values.count(LUMBERYARD) * answer.keys[0].values.count(TREES)}"
+  end
 end
 
-solve_puzzle lumber_area, 10
-solve_puzzle lumber_area, 1000000000
+solve_puzzle lumber_area, [10, 1000000000]
