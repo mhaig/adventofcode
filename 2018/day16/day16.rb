@@ -157,28 +157,62 @@ def execute_instruction(instruction, input_register, output_register)
 
   # Execute all the instructions on the input register.  Use the result as a
   # hash.
-  results = $methods.map { |m| m.call(instruction[1], instruction[2], instruction[3], input_register.deep_dup) }
+  results = $methods.map { |m| [m, m.call(instruction[1], instruction[2], instruction[3], input_register.deep_dup)] }
 
   # Only select the ones that match the expected output.
-  results.count { |r| r == output_register }
+  # match_count = results.count { |r| r[1] == output_register }
+
+  correct_instructions = results.select { |r| r[1] == output_register }
+
+  return correct_instructions
 
 end
 
-input = ARGF.read.split("\n\n")
+input = ARGF.read.split("\n\n\n\n")
 
 duplicate_instruction_count = []
 
-input.each do |i|
+solved_instructions = {}
 
-  break if i == ""
-  p i
+loop do
+  input[0].split("\n\n").each do |i|
 
-  start_register = get_registers(i.split("\n")[0])
-  end_register = get_registers(i.split("\n")[2])
-  instruction = i.split("\n")[1].split(" ").map(&:to_i)
+    break if i == ""
+    # p i
 
-  duplicate_instruction_count << execute_instruction(instruction, start_register, end_register)
+    start_register = get_registers(i.split("\n")[0])
+    end_register = get_registers(i.split("\n")[2])
+    instruction = i.split("\n")[1].split(" ").map(&:to_i)
 
+    correct_instructions = execute_instruction(instruction, start_register, end_register)
+    duplicate_instruction_count << correct_instructions.count
+
+    if correct_instructions.count == 1
+      p correct_instructions
+      # Only operation is correct, mark it as solved.
+      solved_instructions[instruction[0]] = correct_instructions[0][0]
+    elsif correct_instructions.count > 1
+      # Build a list of correct instructions that are not in the solved list and
+      # see if that is 1.
+      tmp = correct_instructions.select { |ci| not solved_instructions.values.include? ci[0] }
+      solved_instructions[instruction[0]] = tmp[0][0] if tmp.count == 1
+    end
+
+  end
+
+  break if solved_instructions.count == 16
 end
 
 p duplicate_instruction_count.count { |x| x >= 3 }
+p solved_instructions.sort
+
+# OK now execute the program against the solved instructions.
+registers = [0, 0, 0, 0]
+input[1].split("\n").each do |i|
+
+  instruction = i.split(" ").map(&:to_i)
+  p instruction
+  registers = solved_instructions[instruction[0]].call(instruction[1], instruction[2], instruction[3], registers)
+
+end
+p registers
