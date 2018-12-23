@@ -19,13 +19,30 @@ input.each do |i|
 
 end
 
-p plants
 p key
 
+def calculate_sum(plants, start)
+  sum = 0
+  plants.each do |p|
+    sum += start if p == "#"
+    start += 1
+  end
+
+  return sum
+end
+
 def run_algorithm(plants, key, generations)
+
   start = 0
+  previous_sum = 0
+  previous_sum_diff = 0
+  pattern_count = 0
+  sum = 0
+
   p "0 : #{plants.join('')}"
-  (1..generations).each do |c|
+
+  generation = 1
+  loop do
 
     next_plants = []
     if plants[0] == "#"
@@ -54,25 +71,40 @@ def run_algorithm(plants, key, generations)
 
     end
 
-    if c % 1000 == 0
-      p c
-    end
-
     # p "%02d: #{next_plants.join('')}" % c
     plants = next_plants
     plants.push(".", ".")
 
+    # Generate a sum for the generation and add to a hash table.
+    sum = calculate_sum(plants, start)
+
+    # Hints indicate some kind of pattern in the output but it does not appear
+    # to be a repeating one.  Is it some pattern just in the sum value?
+    diff = sum - previous_sum
+    if diff == previous_sum_diff
+      puts "Starting at #{generation}, sum is #{sum} and grows by #{diff}"
+      pattern_count += 1
+
+      break if pattern_count >= 5
+    else
+      pattern_count = 0
+    end
+    previous_sum_diff = diff
+    previous_sum = sum
+
+    # There is, seems to grow but a set value after a point.  Need to find the
+    # point and the value it grows by for the math.
+
+    break if generation == generations
+    generation += 1
+
   end
 
-  sum = 0
-  plants.each do |p|
+  puts "Sum after 20 generations: #{calculate_sum(plants, start)}" if generations == 20
 
-    sum += start if p == "#"
-    start += 1
+  puts "Sum after #{generations} generations: #{((generations - generation) * previous_sum_diff) + sum}"
 
-  end
-  p sum
 end
 
-run_algorithm(plants, key, 20)
-run_algorithm(plants, key, 50000000000)
+run_algorithm(plants.dup, key, 20)
+run_algorithm(plants.dup, key, 50000000000)
