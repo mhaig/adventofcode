@@ -1,51 +1,48 @@
 #!/usr/bin/env ruby
 
-class MapElement
-  def initialize(char, map=nil)
+class CavernElement
+  def initialize char
     @char = char
-    @map = map
   end
 
   def show
     print(@char)
   end
 
-  def move; end
-  def attack; end
-  def turn; end
+  def is_unit?
+    false
+  end
 end
 
-class Wall < MapElement
-  def initialize map
+class Wall < CavernElement
+  def initialize
     super("#")
   end
 end
 
-class Open < MapElement
-  def initialize map
+class Open < CavernElement
+  def initialize
     super('.')
   end
 end
 
-class Goblin < MapElement
-  def initialize map
-    super("G", map)
+class Goblin < CavernElement
+  def initialize
+    super("G")
   end
 
-  def turn
-    return unless @map.has?(Elf)
-
-    # Get the adjacent open squares.
+  def is_unit?
+    true
   end
 end
 
-class Elf < MapElement
-  def initialize map
-    super("E", map)
+class Elf < CavernElement
+  def initialize
+    super("E")
   end
 
-  def turn
-    @map.has?(Goblin)
+  def is_unit?
+    true
   end
 end
 
@@ -74,7 +71,7 @@ class Cavern
         when "G" then m = Goblin
         when "E" then m = Elf
         end
-        @map[[x, y]] = m.new(self)
+        @map[[x, y]] = m.new
       end
       print("\n")
     end
@@ -94,7 +91,17 @@ class Cavern
   end
 
   def turn
-    @map.values.any?{|v| v.turn}
+    # Make a copy of the map to put the moves into?
+
+    (0...@height).each do |y|
+      (0...@width).each do |x|
+
+        # Only execute a turn on the space if it is a unit.
+        next unless @map[[x,y]].is_unit?
+
+        p "Unit at #{x},#{y}"
+      end
+    end
   end
 
 end
@@ -108,4 +115,4 @@ cavern = Cavern.new(raw_map)
 puts cavern.inspect
 cavern.show()
 
-p cavern.turn
+cavern.turn
