@@ -30,23 +30,44 @@ class IntcodeComputer(object):
     def need_input(self):
         return self._memory[self._pc] == 3 and not self._input
 
-    def _fetch_a(self):
-        return self._memory[self._memory[self._pc + 1]]
+    def _get_memory(self, location):
+        return self._memory.get(location, 0)
 
-    def _store_a(self, value):
-        self._memory[self._memory[self._pc + 1]] = value
+    def _fetch_a(self, mode):
+        if mode == 1:
+            return self._get_memory(self._pc + 1)
+        elif mode == 2:
+            return self._get_memory(self._get_memory(self._pc + 1) + self._relative_base)
+        else:
+            return self._get_memory(self._get_memory(self._pc + 1))
 
-    def _fetch_b(self):
-        return self._memory[self._memory[self._pc + 2]]
+    def _store_a(self, value, mode):
+        relative = 0
+        if mode == 2:
+            relative = self._relative_base
+        self._memory[self._memory[self._pc + 1] + relative] = value
 
-    def _store_c(self, value):
-        self._memory[self._memory[self._pc + 3]] = value
+    def _fetch_b(self, mode):
+        if mode == 1:
+            return self._get_memory(self._pc + 2)
+        elif mode == 2:
+            return self._get_memory(self._get_memory(self._pc + 2) + self._relative_base)
+        else:
+            return self._get_memory(self._get_memory(self._pc + 2))
+
+    def _store_c(self, value, mode):
+        relative = 0
+        if mode == 2:
+            relative = self._relative_base
+        self._memory[self._memory[self._pc + 3] + relative] = value
 
     def reset(self):
         self._input = []
         self._output = 0
-        self._memory = [int(x) for x in self._program.split(',')]
+        # self._memory = {int(x) for x in self._program.split(',')}
+        self._memory = {k: int(x) for (k, x) in enumerate(self._program.split(','))}
         self._pc = 0
+        self._relative_base = 0
 
     def set_input(self, value):
         if isinstance(value, list):
@@ -70,28 +91,22 @@ class IntcodeComputer(object):
         second_mode = int(full_opcode[1])
         third_mode = int(full_opcode[0])
 
-        if first_mode == 1:
-            a = self._memory[self._pc + 1]
-        else:
-            a = self._fetch_a()
+        a = self._fetch_a(first_mode)
 
         if opcode in [1, 2, 5, 6, 7, 8]:
-            if second_mode == 1:
-                b = self._memory[self._pc + 2]
-            else:
-                b = self._fetch_b()
+            b = self._fetch_b(second_mode)
 
         if opcode == 1: # opcode 1: add
-            self._store_c((a + b))
+            self._store_c((a + b), third_mode)
             inst_size = 4
         elif opcode == 2: # opcode 2: multiply
-            self._store_c((a * b))
+            self._store_c((a * b), third_mode)
             inst_size = 4
         elif opcode == 3: # opcode 3: input
             if self._headless:
-                self._store_a(self._input.pop(0))
+                self._store_a(self._input.pop(0), first_mode)
             else:
-                self._store_a(int(input('input: ')))
+                self._store_a(int(input('input: ')), first_mode)
             inst_size = 2
         elif opcode == 4: # opcode 4: output
             if self._headless:
@@ -111,16 +126,19 @@ class IntcodeComputer(object):
             inst_size = 3
         elif opcode == 7: # opcode 7: less than
             if a < b:
-                self._store_c(1)
+                self._store_c(1, third_mode)
             else:
-                self._store_c(0)
+                self._store_c(0, third_mode)
             inst_size = 4
         elif opcode == 8: # opcode 8: equals
             if a == b:
-                self._store_c(1)
+                self._store_c(1, third_mode)
             else:
-                self._store_c(0)
+                self._store_c(0, third_mode)
             inst_size = 4
+        elif opcode == 9: # opcode 9: adjust relative base
+            self._relative_base += a
+            inst_size = 2
 
         self._pc += inst_size
 
