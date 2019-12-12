@@ -13,14 +13,13 @@ class IntcodeComputer(object):
         self._program = program
         self._headless = headless
 
-        self._input = []
-        self._output = 0
-
         self.reset()
 
     @property
     def output(self):
-        return self._output
+        output = self._output
+        self._output = None
+        return output
 
     @property
     def running(self):
@@ -63,7 +62,7 @@ class IntcodeComputer(object):
 
     def reset(self):
         self._input = []
-        self._output = 0
+        self._output = None
         # self._memory = {int(x) for x in self._program.split(',')}
         self._memory = {k: int(x) for (k, x) in enumerate(self._program.split(','))}
         self._pc = 0
