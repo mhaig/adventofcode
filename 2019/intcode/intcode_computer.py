@@ -12,6 +12,8 @@ class IntcodeComputer(object):
         """
         self._program = program
         self._headless = headless
+        self._output_handlers = []
+        self._input_handler = None
 
         self.reset()
 
@@ -60,6 +62,12 @@ class IntcodeComputer(object):
             relative = self._relative_base
         self._memory[self._memory[self._pc + 3] + relative] = value
 
+    def add_output_handler(self, output_handler):
+        self._output_handlers.append(output_handler)
+
+    def set_input_handler(self, input_handler):
+        self._input_handler = input_handler
+
     def reset(self):
         self._input = []
         self._output = None
@@ -102,7 +110,9 @@ class IntcodeComputer(object):
             self._store_c((a * b), third_mode)
             inst_size = 4
         elif opcode == 3: # opcode 3: input
-            if self._headless:
+            if self._input_handler:
+                self._store_a(self._input_handler(), first_mode)
+            elif self._headless:
                 self._store_a(self._input.pop(0), first_mode)
             else:
                 self._store_a(int(input('input: ')), first_mode)
@@ -112,6 +122,8 @@ class IntcodeComputer(object):
                 self._output = a
             else:
                 print(f'output: {a}')
+            for o in self._output_handlers:
+                o(a)
             inst_size = 2
         elif opcode == 5: # opcode 5: jump-if-true
             if a != 0:
@@ -138,6 +150,9 @@ class IntcodeComputer(object):
         elif opcode == 9: # opcode 9: adjust relative base
             self._relative_base += a
             inst_size = 2
+        else:
+            print(opcode)
+            raise NotImplemented()
 
         self._pc += inst_size
 
