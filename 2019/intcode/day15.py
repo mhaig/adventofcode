@@ -3,16 +3,17 @@
 
 import argparse
 
+import cell
 import intcode_computer
 
-class Cell(object):
+class Cell(cell.Cell):
     """Docstring for Cell."""
 
     def __init__(self, content):
         """
         @todo Document Cell.__init__ (along with arguments).
         """
-        self._visited = False
+        super(Cell, self).__init__()
         if content == 0:
             self._content = '#'
         elif content == 1:
@@ -22,23 +23,11 @@ class Cell(object):
         else:
             raise NotImplemented()
 
-    @property
-    def visited(self):
-        return self._visited
-    @visited.setter
-    def visited(self, value):
-        self._visited = value
-
-    @property
-    def content(self):
-        return self._content
     @content.setter
     def content(self, value):
         if value == 'O':
             self._content = value
 
-    def __str__(self):
-        return self._content
 
 class Area(object):
     """Docstring for Area."""
@@ -105,7 +94,6 @@ class Area(object):
         return self._output
 
     def search(self, x, y, prev=None):
-
 
         # Run the computer to the new spot.
         if self._run_computer(x, y):
