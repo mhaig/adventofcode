@@ -25,6 +25,39 @@ class Cell(cell.Cell):
     def portal(self, value):
         self._portal = value
 
+def print_grid(a_grid):
+
+    print_str = ''
+    for y in range(a_grid.height):
+        for x in range(a_grid.width):
+            print_str += str(a_grid[x, y])
+
+        print_str += '\n'
+
+    print(print_str)
+
+def get_neighbors(a_grid, x, y):
+    """Given a grid and an x,y position, return all nodes that connect."""
+
+    neighbors = {}
+    if a_grid[x+1,y].content == '.':
+        neighbors[x+1,y] = a_grid[x+1, y]
+    if a_grid[x-1,y].content == '.':
+        neighbors[x-1,y] = a_grid[x-1, y]
+    if a_grid[x, y+1].content == '.':
+        neighbors[x, y+1] = a_grid[x, y+1]
+    if a_grid[x, y-1].content == '.':
+        neighbors[x, y-1] = a_grid[x, y-1]
+    if grid[x,y].portal:
+        for k, v in grid.items():
+            if v.portal == grid[x,y].portal and v != grid[x,y]:
+                neighbors[k[0], k[1]] = v
+
+
+    return neighbors
+
+
+
 # Read in the entire map.
 parser = argparse.ArgumentParser()
 parser.add_argument('file_name')
@@ -44,17 +77,6 @@ for y, row in enumerate(raw_map.split('\n')):
     for x, c in enumerate(row):
         if c:
             grid[x,y] = Cell(c)
-
-def print_grid(a_grid):
-
-    print_str = ''
-    for y in range(a_grid.height):
-        for x in range(a_grid.width):
-            print_str += str(a_grid[x, y])
-
-        print_str += '\n'
-
-    print(print_str)
 
 print_grid(grid)
 
@@ -78,49 +100,63 @@ for k,v in grid.items():
 
 # TODO convert this to a BFS that hits every node, see webpage that is open.
 # Consider making the map a binary tree instead of a map.
-def search(x, y, prev=None):
+# visits all the nodes of a graph (connected component) using BFS
+def bfs_connected_component(graph, start):
+    # keep track of all visited nodes
+    explored = []
+    # keep track of nodes to be checked
+    queue = [start]
 
-    global steps
+    # keep looping until there are nodes still to be checked
+    while queue:
+        # pop shallowest node (first node) from queue
+        node = queue.pop(0)
+        if node not in explored:
+            # add node to list of checked nodes
+            explored.append(node)
+            neighbors = get_neighbors(graph, node[0], node[1])
 
-    if grid[x,y].portal == 'AA':
-        print('back at start...')
+            # add neighbours of node to queue
+            for neighbor in neighbors:
+                queue.append(neighbor)
+    return explored
 
-    steps += 1
-    if grid[x,y].portal == 'ZZ':
-        print(f'Found it! {steps}')
-        return True
-    elif grid[x,y].content == '#':
-        steps -= 1
-        return False
-    elif grid[x,y].content != '.':
-        steps -= 1
-        return False
-    elif grid[x,y].visited:
-        # Need to move back here I think...
-        steps -= 1
-        return False
+# finds shortest path between 2 nodes of a graph using BFS
+def bfs_shortest_path(graph, start, goal):
+    # keep track of explored nodes
+    explored = []
+    # keep track of all the paths to be checked
+    queue = [[start]]
 
-    print(f'step {steps} {x},{y}')
-    grid[x,y].visited = True
+    # return path if start is goal
+    if start == goal:
+        return "That was easy! Start = goal"
 
-    # See if there is a portal and search it if necessary.
-    if grid[x,y].portal:
-        for k, v in grid.items():
-            if v.portal == grid[x,y].portal and v != grid[x,y]:
-                print('visit a portal')
-                portal_x = k[0]
-                portal_y = k[1]
+    # keeps looping until all possible paths have been checked
+    while queue:
+        # pop the first path from the queue
+        path = queue.pop(0)
+        # get the last node from the path
+        node = path[-1]
+        if node not in explored:
+            neighbors = get_neighbors(graph, node[0], node[1])
+            # go through all neighbor nodes, construct a new path and
+            # push it into the queue
+            for neighbor in neighbors:
+                new_path = list(path)
+                new_path.append(neighbor)
+                queue.append(new_path)
+                # return path if neighbor is goal
+                if neighbor == goal:
+                    return new_path
 
-    if ((x < grid.width-1 and search(x+1, y, (x,y))) or 
-            (y > 0 and search(x, y-1, (x,y))) or
-            (x > 0 and search(x-1, y, (x,y))) or
-            (y < grid.height-1 and search(x, y+1, (x,y))) or
-            (grid[x,y].portal and search(portal_x, portal_y, (x,y)))):
-        return True
+            # mark node as explored
+            explored.append(node)
 
-    steps -= 1
+    # in case there's no path between the 2 nodes
+    return "So sorry, but a connecting path doesn't exist :("
 
-    return False
+
 
 # Get the start position.
 for k,v in grid.items():
@@ -128,6 +164,14 @@ for k,v in grid.items():
         start_x = k[0]
         start_y = k[1]
 
-steps = 0
-search(start_x, start_y)
-print(steps)
+# Get the end position.
+for k,v in grid.items():
+    if v.portal == 'ZZ':
+        end_x = k[0]
+        end_y = k[1]
+
+print(f'Start: {start_x}, {start_y}')
+print(f'End:   {end_x}, {end_y}')
+
+answer = len(bfs_shortest_path(grid, (start_x, start_y), (end_x, end_y))) - 1
+print(f'Part 1 Solution: {answer}')
