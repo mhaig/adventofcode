@@ -11,9 +11,9 @@ class Grid(dict):
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
-        if key[0] > self._width:
+        if key[0] >= self._width:
             self._width = key[0] + 1
-        if key[1] > self._height:
+        if key[1] >= self._height:
             self._height = key[1] + 1
 
     @property
