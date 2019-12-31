@@ -15,6 +15,10 @@ class Chemical(object):
     def amount(self):
         return self._amount
 
+    @amount.setter
+    def amount(self, value):
+        self._amount = value
+
     def __str__(self):
         return f'{self._amount} {self._name}'
 
@@ -75,26 +79,26 @@ final_list = {}
 overages = {}
 def get_required_ore(amount, reaction, reactions):
 
-    print(f'Get required ore for {reaction}')
+    # print(f'Get required ore for {reaction}')
 
     if reaction.is_ore():
-        print(f'Base element, adding {amount} to final list.')
+        # print(f'Base element, adding {amount} to final list.')
         final_list[reaction.output.name] += amount
         return
     else:
-        print(f'I need {amount} of {reaction.output.name}')
+        # print(f'I need {amount} of {reaction.output.name}')
         if overages.get(reaction.output.name, 0):
             # Reduce amount by overage.
-            print(f'Applying existing overage of {overages[reaction.output.name]}')
+            # print(f'Applying existing overage of {overages[reaction.output.name]}')
             amount -= overages[reaction.output.name]
             overages[reaction.output.name] = 0
-        print(f'I need {amount} of {reaction.output.name}')
+        # print(f'I need {amount} of {reaction.output.name}')
         reaction_scale = math.ceil(amount / reaction.output.amount)
         scaled_result = reaction_scale * reaction.output.amount
-        print(f'This reaction will produce {scaled_result} of ' +
-              f'{reaction.output.name}')
+        # print(f'This reaction will produce {scaled_result} of ' +
+              # f'{reaction.output.name}')
         if scaled_result - amount:
-            print(f'overage of {scaled_result - amount}')
+            # print(f'overage of {scaled_result - amount}')
             overages[reaction.output.name] = (
                 overages.get(reaction.output.name, 0) +
                 (scaled_result - amount))
@@ -106,6 +110,7 @@ def get_required_ore(amount, reaction, reactions):
 
 import argparse
 import math
+import copy
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file_name')
@@ -136,23 +141,59 @@ for r in reactions:
 
 print(f'Fuel line: {fuel}')
 
-# get_required_ore(fuel, reactions)
-r = 0
-for i in fuel.inputs:
-    a_reaction1 = get_reaction(i.name, reactions)
-    print(f'I need {i.amount} of {i.name}')
-    get_required_ore(i.amount, a_reaction1, reactions) 
+def calculate_fuel():
 
-print(ores)
-print(final_list)
+    for k in final_list.keys():
+        final_list[k] = 0
+    for k in overages.keys():
+        overages[k] = 0
 
-# Use final_list to calculate required ore.
-total = 0
-for k,v in final_list.items():
+    # get_required_ore(fuel, reactions)
+    for i in fuel.inputs:
+        a_reaction1 = get_reaction(i.name, reactions)
+        # print(f'I need {i.amount} of {i.name}')
+        get_required_ore(i.amount, a_reaction1, reactions) 
 
-    # Get ratio for ore
-    ratio = ores[k]
-    print(f'Need {v} of {k} at {ratio[1]} {k} to {ratio[0]} ORE')
-    total += math.ceil(v / ratio[1]) * ratio[0]
+    # Use final_list to calculate required ore.
+    total = 0
+    for k,v in final_list.items():
 
-print(total)
+        # Get ratio for ore
+        ratio = ores[k]
+        # print(f'Need {v} of {k} at {ratio[1]} {k} to {ratio[0]} ORE')
+        total += math.ceil(v / ratio[1]) * ratio[0]
+
+    return total
+
+num = calculate_fuel()
+print(f'Part 1 Answer: {num}')
+
+# Double the fuel line.
+original_fuel = copy.deepcopy(fuel)
+start = 1
+stop = 1000000000000
+while True:
+
+    if stop - start == 1:
+        print(f'Part 2 Answer: {multiplier}')
+        break
+
+    # First pick a number half way between start and stop
+    multiplier = start + ((stop - start) // 2)
+    # print(f'start: {start}')
+    # print(f'stop: {stop}')
+    # print(f'multiplier: {multiplier}')
+
+    # Get a fresh copy of the fuel line and apply the multiplier.
+    fuel = copy.deepcopy(original_fuel)
+    for c in fuel.inputs:
+        c.amount *= multiplier
+    fuel.output.amount *= multiplier
+    num = calculate_fuel()
+    # print(f'ore needed: {num}')
+    if num > 1000000000000:
+        # Too much ore needed, new stop point.
+        stop = multiplier
+    else:
+        # Not enough ore needed, new start point.
+        start = multiplier
