@@ -11,7 +11,7 @@ def mine(secret_key, zeros):
     number = 1
     m = hashlib.md5()
     m.update('{}{}'.format(secret_key, number).encode('utf-8'))
-    while m.hexdigest()[0:5] != '0'*zeros:
+    while m.hexdigest()[0:zeros] != '0'*zeros:
         number += 1
         m = hashlib.md5()
         m.update('{}{}'.format(secret_key, number).encode('utf-8'))
