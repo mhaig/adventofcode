@@ -25,6 +25,9 @@ class Grid(dict):
 
         return string
 
+    def __hash__(self):
+        return hash(self.__str__())
+
     @property
     def height(self):
         return self._height
@@ -56,5 +59,19 @@ class Grid(dict):
             adjacent.append(self[x+1, y])
         if y + 1 < self.height:
             adjacent.append(self[x, y+1])
+
+        return adjacent
+
+    def get_adjacent_diagonal(self, x, y):
+        adjacent = self.get_adjacent(x, y)
+
+        if x+1 < self.width and y+1 < self.height:
+            adjacent.append(self[x+1, y+1])
+        if x and y:
+            adjacent.append(self[x-1,y-1])
+        if x+1 < self.width and y:
+            adjacent.append(self[x+1, y-1])
+        if x and y+1 < self.height:
+            adjacent.append(self[x-1, y+1])
 
         return adjacent
