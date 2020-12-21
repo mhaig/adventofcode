@@ -39,6 +39,9 @@ class Grid(dict):
     def get_row(self, y):
         return [x for k,x in self.items() if k[1] == y]
 
+    def get_column(self, x):
+        return [v for k,v in self.items() if k[0] == x]
+
     def build(self, string):
         for y, row in enumerate(string.split('\n')):
             if not row:
