@@ -12,6 +12,7 @@ class Board(Grid):
 
     def __init__(self):
         Grid.__init__(self)
+        self._won = False
 
     def build(self, string):
         for y, row in enumerate(string.split('\n')):
@@ -28,6 +29,11 @@ class Board(Grid):
             for x in range(self.width):
                 l.append(self[x,y])
         return l
+
+    def get_won(self):
+        return self._won
+    def set_won(self, val):
+        self._won = val
 
 boards = []
 board_str = ''
@@ -50,27 +56,27 @@ print(b)
 boards.append(b)
 
 def winner(drawn, test):
-    print(drawn)
-    print([x in drawn for x in test])
-    print([x for x in test])
     return all([x in drawn for x in test])
 
 def solve():
     for i in range(1,len(draw_numbers)):
         for b in boards:
+            if b.get_won():
+                continue
+
             for r in range(b.height):
                 if winner(draw_numbers[0:i], b.get_row(r)):
-                    print('Winner!')
                     uncalled = sum([x for x in b.all() if x not in draw_numbers[0:i]])
-                    print(draw_numbers[i-1])
                     print('Part 1 Solution: {}'.format(uncalled * draw_numbers[i-1]))
-                    return
+                    b.set_won(True)
+
+            if b.get_won():
+                continue
+
             for c in range(b.width):
                 if winner(draw_numbers[0:i], b.get_column(c)):
-                    print('Winner!')
                     uncalled = sum([x for x in b.all() if x not in draw_numbers[0:i]])
-                    print(draw_numbers[i-1])
                     print('Part 1 Solution: {}'.format(uncalled * draw_numbers[i-1]))
-                    return
+                    b.set_won(True)
 
 solve()
