@@ -6,24 +6,25 @@ from collections import deque
 
 class Lanternfish(object):
 
-    def __init__(self, *args):
-        self._timer = 8
-        if len(args) == 1 and isinstance(args[0], int):
-            self._timer = args[0]
-        elif len(args):
-            raise Exception
+    def __init__(self, timer=8, count=1):
+        self._timer = timer
+        self._count = count
 
     @property
     def timer(self):
         return self._timer
 
+    @property
+    def count(self):
+        return self._count
+
     def day(self):
         self._timer -= 1
         if self._timer < 0:
             self._timer = 6
-            return Lanternfish()
+            return True
         else:
-            return None
+            return False
 
     def __repr__(self):
         return '{}'.format(self._timer)
@@ -31,15 +32,24 @@ class Lanternfish(object):
 fish_list = deque()
 
 for f in sys.stdin.read().split(','):
-    fish_list.append(Lanternfish(int(f)))
+    fish_list.append(Lanternfish(timer=int(f)))
 
 print('Initial state: {}'. format(fish_list))
 
 for day in range(80):
-    fish_count = len(fish_list)
-    for i in range(fish_count):
-        new_fish = fish_list[i].day()
-        if new_fish:
-            fish_list.append(new_fish)
+    new_fish = 0
+    for fish in fish_list:
+        if fish.day():
+            new_fish += fish.count
+    fish_list.append(Lanternfish(count=new_fish))
 
-print('Part 1 Solution: {}'.format(len(fish_list)))
+print('Part 1 Solution: {}'.format(sum([x.count for x in fish_list])))
+
+for day in range(80, 256):
+    new_fish = 0
+    for fish in fish_list:
+        if fish.day():
+            new_fish += fish.count
+    fish_list.append(Lanternfish(count=new_fish))
+
+print('Part 2 Solution: {}'.format(sum([x.count for x in fish_list])))
