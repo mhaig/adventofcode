@@ -42,6 +42,12 @@ class Paper(Grid):
                     self[new_x, y] = self[x,y]
                     self[x,y] = '.'
 
+    def do_fold(self, axis, pos):
+        if axis == 'x':
+            paper.fold_x(pos)
+        else:
+            paper.fold_y(pos)
+
 
 paper = Paper()
 fold_y = 0
@@ -55,12 +61,7 @@ for line in sys.stdin.readlines():
         k,v = line.split()[-1].split('=')
         folds.append((k, int(v)))
 
-for f in folds:
-    if f[0] == 'x':
-        paper.fold_x(f[1])
-    else:
-        paper.fold_y(f[1])
 
-    break
+paper.do_fold(folds[0][0], folds[0][1])
 
 print('Part 1 Solution: {}'.format(list(paper.values()).count('#')))
