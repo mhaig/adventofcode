@@ -3,8 +3,9 @@
 
 import sys
 from collections import Counter
+from collections import deque
 
-polymer_template = ''
+polymer_template = deque()
 pair_insertion = {}
 
 for line in sys.stdin.readlines():
@@ -12,24 +13,18 @@ for line in sys.stdin.readlines():
         k,v = line.split('->')
         pair_insertion[k.strip()] = v.strip()
     elif line.strip():
-        polymer_template = [c for c in line.strip()]
+        polymer_template = deque([c for c in line.strip()])
 
 
-print(polymer_template)
-print(pair_insertion)
-
-    # if len(template[pos:]) == 1:
-    #     return
-
-    # template.insert(pos+1, rules[''.join(template[pos:pos+2])])
-
-    # do_insertion(template, rules, pos+2)
+print('Template: {}'.format(''.join(polymer_template)))
 
 def do_insertion(template, rules):
     i = 0
-    while i < len(polymer_template)-1:
-        template.insert(i+1, rules[''.join(template[i:i+2])])
+    length = len(polymer_template) - 1
+    while i < length:
+        template.insert(i+1, rules[template[i]+template[i+1]])
         i += 2
+        length += 1
     return template
 
 # Part 1
@@ -39,3 +34,8 @@ for x in range(10):
 
 counts = Counter(polymer_template)
 print('Part 1 Solution: {}'.format(max(counts.values()) - min(counts.values())))
+
+# Part 2
+for x in range(10, 40):
+    polymer_template = do_insertion(polymer_template, pair_insertion)
+    print('Done step {} of {}'.format(x, 40))
