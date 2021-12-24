@@ -9,7 +9,8 @@ def add_version_numbers(packet):
     return packet.version + sum([add_version_numbers(x) for x in packet.sub_packets])
 
 line = sys.stdin.read().strip()
-print(line)
+
 p = Packet(line)
 
 print('Part 1 Solution: {}'.format(add_version_numbers(p)))
+print('Part 2 Solution: {}'.format(p.get_value()))

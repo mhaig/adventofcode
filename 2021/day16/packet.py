@@ -1,3 +1,5 @@
+import math
+
 class Packet(object):
 
     def __init__(self, raw_packet, binary=False):
@@ -15,6 +17,10 @@ class Packet(object):
     @property
     def bit_length(self):
         return self._bit_length
+
+    @property
+    def type(self):
+        return self._type
 
     @property
     def version(self):
@@ -36,15 +42,12 @@ class Packet(object):
                 b = ((4 - len(b)) * '0') + b
                 self._binary += b
 
-        print('Parsing: {}'.format(self._binary))
-
         self._version = int(self._binary[0:3],2)
         self._bit_length += 3
         self._type = int(self._binary[3:3+3],2)
         self._bit_length += 3
 
         if self._type == 4:
-            print('Packet is of type 4, literal', end='')
             literal_value_string = ''
             start = 6
             length = 5
@@ -56,10 +59,7 @@ class Packet(object):
                     break
                 start += length
             self._literal_value = int(literal_value_string, 2)
-            print(' with value {}'.format(self._literal_value))
         else:
-            print('Packet is an operator version {}'.format(self._version))
-
             self._length_type = int(self._binary[6],2)
             self._bit_length += 1
 
@@ -67,19 +67,15 @@ class Packet(object):
                 self._sub_packet_length = int(self._binary[7:7+15],2)
                 start = 7+15
                 self._bit_length += 15
-                print('total length of sub-packets: {}'.format(self._sub_packet_length))
             else:
                 self._sub_packet_count = int(self._binary[7:7+11],2)
                 start = 7+11
                 self._bit_length += 11
-                print('number of sub-packets: {}'.format(self._sub_packet_count))
 
             while True:
-                print('found a sub packet')
                 sub_packet = Packet(self._binary[start:], True)
                 self._sub_packets.append(sub_packet)
                 self._bit_length += sub_packet.bit_length
-                print('done!')
 
                 if self._sub_packet_length:
                     remaining_length = self._sub_packet_length - sum([x.bit_length for x in self._sub_packets])
@@ -90,3 +86,32 @@ class Packet(object):
                         break
 
                 start += sub_packet.bit_length
+
+
+    def get_value(self):
+        # Literal value
+        if self.type == 4:
+            return self._literal_value
+
+        # Greater than
+        if self.type == 5:
+            return int(self.sub_packets[0].get_value() >
+                       self.sub_packets[1].get_value())
+        # Less than
+        elif self.type == 6:
+            return int(self.sub_packets[0].get_value() <
+                       self.sub_packets[1].get_value())
+        # Equal
+        elif self.type == 7:
+            return int(self.sub_packets[0].get_value() ==
+                       self.sub_packets[1].get_value())
+
+        values = [x.get_value() for x in self.sub_packets]
+        if self.type == 0:
+            return sum(values)
+        elif self.type == 1:
+            return math.prod(values)
+        elif self.type == 2:
+            return min(values)
+        elif self.type == 3:
+            return max(values)
