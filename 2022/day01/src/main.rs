@@ -1,4 +1,4 @@
-use std::{io::{self, BufRead}};
+use std::io::{self, BufRead};
 
 #[derive(Debug)]
 struct Elf {
