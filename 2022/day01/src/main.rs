@@ -7,28 +7,27 @@ struct Elf {
 }
 
 fn main() -> io::Result<()> {
-    let mut lines = io::stdin().lock().lines();
+    let lines = io::stdin().lock().lines();
 
     let mut elfs: Vec<Elf> = Vec::new();
 
     let mut id: u32 = 1;
     let mut current_id: u32 = u32::MAX;
-    while let Some(line) = lines.next() {
+    for line in lines {
         let last_input = line.unwrap();
 
         if id != current_id {
-            elfs.push(Elf {id, calories: 0});
+            elfs.push(Elf { id, calories: 0 });
             current_id = id;
         }
 
-        if last_input.len() > 0 {
+        if !last_input.is_empty() {
             let cals: i32 = last_input.parse().unwrap();
 
             if let Some(e) = elfs.last_mut() {
                 e.calories += cals;
             }
-        }
-        else {
+        } else {
             id += 1;
         }
     }
@@ -40,8 +39,7 @@ fn main() -> io::Result<()> {
         let max_calories = elf.calories;
         let id = elf.id;
         println!("Elf carrying the most calories: {id}, {max_calories} cals");
-    }
-    else {
+    } else {
         println!("Program didn't work!");
     }
 

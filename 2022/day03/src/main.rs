@@ -1,4 +1,7 @@
-use std::{io::{self, BufRead}, collections::HashMap};
+use std::{
+    collections::HashMap,
+    io::{self, BufRead},
+};
 
 fn score(a: char) -> u32 {
     match a {
@@ -9,18 +12,18 @@ fn score(a: char) -> u32 {
 }
 
 fn main() {
-    let mut lines = io::stdin().lock().lines();
+    let lines = io::stdin().lock().lines();
 
     let mut priority: u32 = 0;
     let mut badge: u32 = 0;
     let mut group_count: u32 = 0;
     let mut badge_map: HashMap<char, i32> = HashMap::new();
-    while let Some(line) = lines.next() {
+    for line in lines {
         let last_input = line.unwrap();
 
-        if last_input.len() > 0 {
-            let compartment_1 = &last_input[0..last_input.len()/2];
-            let compartment_2 = &last_input[last_input.len()/2..];
+        if !last_input.is_empty() {
+            let compartment_1 = &last_input[0..last_input.len() / 2];
+            let compartment_2 = &last_input[last_input.len() / 2..];
 
             let mut compartment_1_items: HashMap<char, i32> = HashMap::new();
             for c in compartment_1.chars() {
@@ -38,16 +41,15 @@ fn main() {
                 compartment_2_items.insert(c, 0);
             }
 
-            if badge_map.len() == 0 {
+            if badge_map.is_empty() {
                 badge_map.extend(compartment_1_items);
                 badge_map.extend(compartment_2_items);
-            }
-            else {
+            } else {
                 for (k, _) in compartment_1_items.iter() {
-                    badge_map.entry(*k).and_modify(|f| { *f += 1 });
+                    badge_map.entry(*k).and_modify(|f| *f += 1);
                 }
                 for (k, _) in compartment_2_items.iter() {
-                    badge_map.entry(*k).and_modify(|f| { *f += 1 });
+                    badge_map.entry(*k).and_modify(|f| *f += 1);
                 }
             }
 
@@ -60,8 +62,7 @@ fn main() {
                 }
                 group_count = 0;
                 badge_map = HashMap::new();
-            }
-            else {
+            } else {
                 group_count += 1;
             }
         }

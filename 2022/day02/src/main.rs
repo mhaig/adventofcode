@@ -1,6 +1,5 @@
-use std::io::{self, BufRead};
 use std::collections::HashMap;
-
+use std::io::{self, BufRead};
 
 // them:
 //   A -> Rock
@@ -10,24 +9,12 @@ use std::collections::HashMap;
 //   X -> Rock
 //   Y -> Paper
 //   Z -> Scissors
-fn resolve_and_score (them: char, expect: char) -> u32 {
-    let win = HashMap::from([
-        ('A', 'Y'),
-        ('B', 'Z'),
-        ('C', 'X'),
-    ]);
+fn resolve_and_score(them: char, expect: char) -> u32 {
+    let win = HashMap::from([('A', 'Y'), ('B', 'Z'), ('C', 'X')]);
 
-    let draw = HashMap::from([
-        ('A', 'X'),
-        ('B', 'Y'),
-        ('C', 'Z'),
-    ]);
+    let draw = HashMap::from([('A', 'X'), ('B', 'Y'), ('C', 'Z')]);
 
-    let lose = HashMap::from([
-        ('A', 'Z'),
-        ('B', 'X'),
-        ('C', 'Y'),
-    ]);
+    let lose = HashMap::from([('A', 'Z'), ('B', 'X'), ('C', 'Y')]);
 
     let r = match expect {
         'X' => lose,
@@ -36,8 +23,7 @@ fn resolve_and_score (them: char, expect: char) -> u32 {
         _ => HashMap::new(),
     };
 
-    return score_round(them, r[&them]);
-
+    score_round(them, r[&them])
 }
 
 // them:
@@ -48,7 +34,7 @@ fn resolve_and_score (them: char, expect: char) -> u32 {
 //   X -> Rock
 //   Y -> Paper
 //   Z -> Scissors
-fn us_win (them: char, us: char) -> bool {
+fn us_win(them: char, us: char) -> bool {
     match them {
         'A' if us == 'Y' => true,
         'B' if us == 'Z' => true,
@@ -58,44 +44,30 @@ fn us_win (them: char, us: char) -> bool {
 }
 
 fn score_round(them: char, us: char) -> u32 {
+    let them_scores = HashMap::from([('A', 1), ('B', 2), ('C', 3)]);
 
-    let them_scores = HashMap::from([
-        ('A', 1),
-        ('B', 2),
-        ('C', 3),
-    ]);
-
-    let us_scores = HashMap::from([
-        ('X', 1),
-        ('Y', 2),
-        ('Z', 3),
-    ]);
+    let us_scores = HashMap::from([('X', 1), ('Y', 2), ('Z', 3)]);
 
     if us_scores[&us] == them_scores[&them] {
-        return us_scores[&us] + 3
-    }
-    else {
-        if us_win(them, us) {
-            return us_scores[&us] + 6
-        }
-        else {
-            return us_scores[&us];
-        }
+        us_scores[&us] + 3
+    } else if us_win(them, us) {
+        us_scores[&us] + 6
+    } else {
+        us_scores[&us]
     }
 }
 
 fn main() {
-    let mut lines = io::stdin().lock().lines();
+    let lines = io::stdin().lock().lines();
 
     let mut part_1_score: u32 = 0;
     let mut part_2_score: u32 = 0;
 
-    while let Some(line) = lines.next() {
+    for line in lines {
         let last_input = line.unwrap();
 
-        if last_input.len() > 0 {
-
-            let them: char = last_input.chars().nth(0).unwrap();
+        if !last_input.is_empty() {
+            let them: char = last_input.chars().next().unwrap();
             let us: char = last_input.chars().nth_back(0).unwrap();
             part_1_score += score_round(them, us);
             part_2_score += resolve_and_score(them, us);
