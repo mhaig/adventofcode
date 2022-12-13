@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{self, BufRead};
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 struct Point {
     x: i32,
     y: i32,
@@ -77,9 +77,15 @@ fn follow_one(head: Point, next: &mut Point) {
 fn main() {
     let lines = io::stdin().lock().lines();
 
-    let mut visited: HashMap<Point, i32> = HashMap::new();
-    let mut head: Point = Point { x: 0, y: 0 };
-    let mut tail: Point = Point { x: 0, y: 0 };
+    let mut part_1_visited: HashMap<Point, i32> = HashMap::new();
+    let mut head: Point = Default::default();
+    let mut tail: Point = Default::default();
+
+    let mut snake: Vec<Point> = Vec::new();
+    let mut part_2_visited: HashMap<Point, i32> = HashMap::new();
+    for _ in 0..10 {
+        snake.push(Default::default());
+    }
 
     for l in lines {
         let line = l.unwrap();
@@ -89,18 +95,27 @@ fn main() {
 
         println!("Move {direction} {steps}");
         for _ in 0..steps {
-            move_one(direction.chars().next().unwrap(), &mut head);
+            let direction_char: char = direction.chars().next().unwrap();
+
+            move_one(direction_char, &mut head);
             println!("Head: {:?}", head);
             follow_one(head, &mut tail);
             println!("Tail: {:?}", tail);
 
-            visited.insert(tail, 0);
+            part_1_visited.insert(tail, 0);
             print_grid(&head, &tail);
             println!();
+
+            move_one(direction_char, &mut snake[0]);
+            for i in 0..snake.len() - 1 {
+                follow_one(snake[i], &mut snake[i + 1]);
+            }
+            part_2_visited.insert(*snake.last().unwrap(), 0);
         }
     }
     println!("Head: {:?}", head);
     println!("Tail: {:?}", tail);
 
-    println!("Part 1 Solution: {}", visited.len());
+    println!("Part 1 Solution: {}", part_1_visited.len());
+    println!("Part 2 Solution: {}", part_2_visited.len());
 }
