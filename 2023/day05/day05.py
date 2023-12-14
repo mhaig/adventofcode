@@ -53,9 +53,6 @@ class Map:
                 )
         return destination
 
-    # def get_from_name(self): -> str:
-    #     return self._from_name
-
     @property
     def destination_name(self) -> str:
         return self._destination_name
