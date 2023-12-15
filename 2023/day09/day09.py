@@ -8,7 +8,11 @@ class History:
         self._history = history
         self._sequences = []
 
-    def extrapolate(self) -> int:
+    def _reduce(self) -> None:
+        if self._sequences:
+            # Already reduced, return.
+            return
+
         self._sequences.append(self._history)
         while True:
             reduced = []
@@ -19,16 +23,27 @@ class History:
             if not any(self._sequences[-1]):
                 break
 
+    def extrapolate(self) -> int:
+        self._reduce()
+
         # Work from the bottom up adding the extra number.
-        print(*self._sequences, sep='\n')
         for i in range(len(self._sequences) - 1, 0, -1):
             self._sequences[i - 1].append(
                 self._sequences[i][-1] + self._sequences[i - 1][-1]
             )
-        print(*self._sequences, sep='\n')
-        print(self._sequences[0][-1])
 
         return self._sequences[0][-1]
+
+    def preextrapolate(self) -> int:
+        self._reduce()
+
+        # Work from the bottom up prepending the extra number.
+        for i in range(len(self._sequences) - 1, 0, -1):
+            self._sequences[i - 1].insert(
+                0, self._sequences[i - 1][0] - self._sequences[i][0]
+            )
+
+        return self._sequences[0][0]
 
     def __repr__(self) -> str:
         return f"""History({" ".join([str(x) for x in self._history])})"""
@@ -45,3 +60,9 @@ for o in oasis:
     total += o.extrapolate()
 
 print("Part 1 Solution: {}".format(total))
+
+total = 0
+for o in oasis:
+    total += o.preextrapolate()
+
+print("Part 2 Solution: {}".format(total))
