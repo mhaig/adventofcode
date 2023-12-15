@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 
 import sys
+from functools import reduce
+
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def lcm(a, b):
+    return a * b // gcd(a, b)
+
+
+def lcmn(*args):
+    return reduce(lcm, args)
 
 
 class Node:
@@ -8,6 +23,7 @@ class Node:
         self._name = name
         self._left = left
         self._right = right
+        self._steps = 0
 
     @property
     def name(self) -> str:
@@ -21,10 +37,19 @@ class Node:
     def right(self) -> str:
         return self._right
 
-    def get(self, direction: chr)->str:
-        if direction == 'L':
+    @property
+    def steps(self) -> int:
+        return self._steps
+
+    @steps.setter
+    def steps(self, value: int) -> None:
+        if self._steps == 0:
+            self._steps = value
+
+    def get(self, direction: str) -> str:
+        if direction == "L":
             return self._left
-        elif direction == 'R':
+        elif direction == "R":
             return self._right
         else:
             raise ValueError
@@ -37,13 +62,13 @@ game_input = list(sys.stdin.readlines())
 
 node_map = {}
 for line in game_input:
-    if line == '\n':
+    if line == "\n":
         continue
 
-    if '=' in line:
-        label = line.split('=')[0].strip()
-        left = line.split('=')[1].split(',')[0].strip()[1:]
-        right = line.split('=')[1].split(',')[1].strip()[:-1]
+    if "=" in line:
+        label = line.split("=")[0].strip()
+        left = line.split("=")[1].split(",")[0].strip()[1:]
+        right = line.split("=")[1].split(",")[1].strip()[:-1]
 
         n = Node(label, left, right)
         node_map[label] = n
@@ -52,12 +77,36 @@ for line in game_input:
         instructions = line.strip()
 
 steps = 0
-node = node_map['AAA']
-while node.name != 'ZZZ':
+node = node_map["AAA"]
+while node.name != "ZZZ":
     for i in instructions:
         node = node_map[node.get(i)]
         steps += 1
-        if node.name == 'ZZZ':
+        if node.name == "ZZZ":
             break
 
-print(steps)
+print("Part 1 Solution: {}".format(steps))
+
+
+# Get all the nodes that end with 'A'.
+nodes = []
+for k, v in node_map.items():
+    if k[-1] == "A":
+        nodes.append(v)
+
+
+steps = 0
+steps_to_z = [0] * len(nodes)
+while True:
+    for i in instructions:
+        steps += 1
+        for j in range(len(nodes)):
+            nodes[j] = node_map[nodes[j].get(i)]
+            if nodes[j].name[-1] == "Z":
+                if steps_to_z[j] == 0:
+                    steps_to_z[j] = steps
+
+    if all(steps_to_z):
+        break
+
+print("Part 2 Solution: {}".format(lcmn(*steps_to_z)))
