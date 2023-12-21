@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# vim:set fileencoding=utf8: #
+#!/usr/bin/env python3
+
 
 class Grid(dict):
     """Docstring for Grid."""
@@ -16,12 +16,12 @@ class Grid(dict):
         if key[1] >= self._height:
             self._height = key[1] + 1
 
-    def __str__(self):
-        string = ''
+    def __str__(self) -> str:
+        string = ""
         for y in range(self.height):
             for x in range(self.width):
                 string += str(self[x, y])
-            string += '\n'
+            string += "\n"
 
         return string
 
@@ -29,52 +29,51 @@ class Grid(dict):
         return hash(self.__str__())
 
     @property
-    def height(self):
+    def height(self) -> int:
         return self._height
 
     @property
-    def width(self):
+    def width(self) -> int:
         return self._width
 
-    def get_row(self, y):
-        return [x for k,x in self.items() if k[1] == y]
+    def get_row(self, y) -> list[int]:
+        return [x for k, x in self.items() if k[1] == y]
 
-    def get_column(self, x):
-        return [v for k,v in self.items() if k[0] == x]
+    def get_column(self, x) -> list[int]:
+        return [v for k, v in self.items() if k[0] == x]
 
-    def build(self, string):
-        for y, row in enumerate(string.split('\n')):
+    def build(self, string: str) -> None:
+        for y, row in enumerate(string.split("\n")):
             if not row:
                 continue
 
             for x, c in enumerate(row):
                 if c:
-                    self[x,y] = c
+                    self[x, y] = c
 
-    def get_adjacent(self, x, y):
-
+    def get_adjacent(self, x: int, y: int) -> list[int]:
         adjacent = []
         if x:
-            adjacent.append(self[x-1, y])
+            adjacent.append(self[x - 1, y])
         if y:
-            adjacent.append(self[x,y-1])
+            adjacent.append(self[x, y - 1])
         if x + 1 < self.width:
-            adjacent.append(self[x+1, y])
+            adjacent.append(self[x + 1, y])
         if y + 1 < self.height:
-            adjacent.append(self[x, y+1])
+            adjacent.append(self[x, y + 1])
 
         return adjacent
 
-    def get_adjacent_diagonal(self, x, y):
+    def get_adjacent_diagonal(self, x: int, y: int) -> list[int]:
         adjacent = self.get_adjacent(x, y)
 
-        if x+1 < self.width and y+1 < self.height:
-            adjacent.append(self[x+1, y+1])
+        if x + 1 < self.width and y + 1 < self.height:
+            adjacent.append(self[x + 1, y + 1])
         if x and y:
-            adjacent.append(self[x-1,y-1])
-        if x+1 < self.width and y:
-            adjacent.append(self[x+1, y-1])
-        if x and y+1 < self.height:
-            adjacent.append(self[x-1, y+1])
+            adjacent.append(self[x - 1, y - 1])
+        if x + 1 < self.width and y:
+            adjacent.append(self[x + 1, y - 1])
+        if x and y + 1 < self.height:
+            adjacent.append(self[x - 1, y + 1])
 
         return adjacent
