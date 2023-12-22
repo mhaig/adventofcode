@@ -2,7 +2,9 @@
 
 import sys
 
+import numpy as np
 from aoc.grid import Grid
+from matplotlib.path import Path
 
 
 class Field(Grid):
@@ -23,6 +25,10 @@ class Field(Grid):
     @start_location.setter
     def start_location(self, start_location):
         self._start_location = start_location
+
+    @property
+    def loop(self) -> list[tuple[int, int]]:
+        return self._previous_moves
 
     def __str__(self) -> str:
         string = super().__str__()
@@ -45,18 +51,19 @@ class Field(Grid):
             x = self._start_location[0]
             y = self._start_location[1]
             if x:
-                if self[x - 1, y] in ["-", "L"]:
+                if self[x - 1, y] in ["-", "L", "F"]:
                     valid_moves.append((x - 1, y))
             if y:
-                if self[x, y + 1] in ["|", "J"]:
-                    valid_moves.append((x, y + 1))
+                if self[x, y - 1] in ["|", "F", "7"]:
+                    valid_moves.append((x, y - 1))
             if x + 1 < self.width:
                 if self[x + 1, y] in ["-", "J", "7"]:
                     valid_moves.append((x + 1, y))
             if y + 1 < self.height:
-                if self[x, y - 1] in ["F", "|", "7"]:
-                    valid_moves.append((x, y - 1))
+                if self[x, y + 1] in ["J", "|", "L"]:
+                    valid_moves.append((x, y + 1))
 
+            self._previous_moves.append(self._start_location)
             self._current_location = valid_moves[0]
 
         else:
@@ -85,9 +92,11 @@ class Field(Grid):
                 moves.append((x, y + 1))
 
             self._previous_moves.append(self._current_location)
-            self._current_location = [
-                x for x in moves if x not in self._previous_moves
-            ][0]
+            next_move = [x for x in moves if x not in self._previous_moves]
+            if not next_move and self._start_location in moves:
+                self._current_location = self._start_location
+            else:
+                self._current_location = next_move[0]
 
         return self._current_location
 
@@ -110,3 +119,13 @@ while grid.start_location != grid.current_location:
     count += 1
 
 print("Part 1 Solution: {}".format(count // 2))
+
+# use matplotlib to solve for points inside loop.
+x, y = np.meshgrid(np.arange(grid.width), np.arange(grid.height))
+x, y = x.flatten(), y.flatten()
+points = np.vstack((x, y)).T
+
+p = Path(grid.loop)
+g = p.contains_points(points)
+inside = [x for x in zip(points, g) if x[1] and tuple(x[0]) not in grid.loop]
+print("Part 2 Solution: {}".format(len(inside)))
