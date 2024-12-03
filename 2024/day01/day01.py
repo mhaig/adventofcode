@@ -17,7 +17,7 @@ distance = 0
 for ids in zip(left_list, right_list):
     distance += abs(ids[1] - ids[0])
 
-print(f'Day 1 Part 1 Solution: {distance}')
+print(f"Day 1 Part 1 Solution: {distance}")
 
 # Convert right_list into a dictionary, counting duplicates.
 right_dict = Counter(right_list)
@@ -26,4 +26,4 @@ similarity_score = 0
 for ids in left_list:
     similarity_score += ids * right_dict.get(ids, 0)
 
-print(f'Day 1 Part 1 Solution: {similarity_score}')
+print(f"Day 1 Part 1 Solution: {similarity_score}")
