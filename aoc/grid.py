@@ -4,10 +4,12 @@
 class Grid(dict):
     """Docstring for Grid."""
 
-    def __init__(self, *args):
+    def __init__(self, text_grid, *args):
         dict.__init__(self, args)
         self._height = 0
         self._width = 0
+
+        self.build(text_grid)
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
