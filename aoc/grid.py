@@ -126,6 +126,19 @@ class Grid(dict):
 
         return adjacent
 
+    def get_neighbors(self, x: int, y: int) -> list[list[int]]:
+        neighbors = []
+        if x:
+            neighbors.append([x - 1, y])
+        if y:
+            neighbors.append([x, y - 1])
+        if x + 1 < self.width:
+            neighbors.append([x + 1, y])
+        if y + 1 < self.height:
+            neighbors.append([x, y + 1])
+
+        return neighbors
+
     def get_adjacent_diagonal(self, x: int, y: int) -> list[int]:
         adjacent = self.get_adjacent(x, y)
 
